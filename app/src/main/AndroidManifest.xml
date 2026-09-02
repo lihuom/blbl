@@ -39,6 +39,10 @@
 	            android:name=".feature.settings.SettingsActivity"
 	            android:screenOrientation="sensorLandscape" />
 	        <activity
+	            android:name=".feature.settings.LocalHistoryActivity"
+	            android:exported="false"
+	            android:screenOrientation="sensorLandscape" />
+	        <activity
 	            android:name=".feature.risk.GaiaVgateActivity"
 	            android:exported="false"
 	            android:screenOrientation="sensorLandscape" />

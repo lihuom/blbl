@@ -1472,6 +1472,31 @@ class SettingsInteractionHandler(
                 renderer.refreshSection(entry.id)
             }
 
+            SettingId.NoTraceMode -> {
+                val options =
+                    listOf(
+                        blbl.cat3399.core.prefs.AppPrefs.NO_TRACE_MODE_OFF to "关",
+                        blbl.cat3399.core.prefs.AppPrefs.NO_TRACE_MODE_LOCAL to "本地有痕·网络无痕",
+                        blbl.cat3399.core.prefs.AppPrefs.NO_TRACE_MODE_FULL to "完全无痕",
+                    )
+                showChoiceDialog(
+                    title = "无痕模式",
+                    items = options.map { it.second },
+                    current = SettingsText.noTraceModeText(prefs.noTraceMode),
+                ) { selected ->
+                    val key =
+                        options.firstOrNull { it.second == selected }?.first
+                            ?: blbl.cat3399.core.prefs.AppPrefs.NO_TRACE_MODE_OFF
+                    if (prefs.noTraceMode == key) {
+                        AppToast.show(activity, "无痕模式：$selected")
+                        return@showChoiceDialog
+                    }
+                    prefs.noTraceMode = key
+                    AppToast.show(activity, "无痕模式：$selected")
+                    renderer.refreshSection(entry.id)
+                }
+            }
+
             SettingId.DynamicFollowingRecentUpdateDotEnabled -> {
                 prefs.dynamicFollowingRecentUpdateDotEnabled = !prefs.dynamicFollowingRecentUpdateDotEnabled
                 AppToast.show(activity, "动态页小红点：${if (prefs.dynamicFollowingRecentUpdateDotEnabled) "开" else "关"}")

@@ -23,6 +23,10 @@ android {
         versionCode = (project.findProperty("versionCode") as String?)?.toInt() ?: 1
         versionName = project.findProperty("versionName") as String? ?: "0.1.0"
 
+        ndk {
+            abiFilters += listOf("armeabi-v7a")
+        }
+
         vectorDrawables {
             useSupportLibrary = true
         }
@@ -40,6 +44,10 @@ android {
     buildTypes {
         debug {
             isMinifyEnabled = false
+            // debug 独立包名后缀，与 release 共存互不冲突。
+            // debug applicationId -> blbl.cat3399.debug
+            // FileProvider authority -> blbl.cat3399.debug.fileprovider
+            applicationIdSuffix = ".debug"
         }
         release {
             isMinifyEnabled = true

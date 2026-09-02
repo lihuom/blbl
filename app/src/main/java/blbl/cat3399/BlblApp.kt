@@ -26,6 +26,7 @@ class BlblApp : Application() {
         )
         AppLog.i("BlblApp", "onCreate")
         BiliClient.init(this)
+        blbl.cat3399.core.prefs.LocalHistoryStore.init(this)
         appScope.launch {
             runCatching { WebCookieMaintainer.ensureDailyMaintenance() }
                 .onFailure { AppLog.w("BlblApp", "daily maintenance failed", it) }

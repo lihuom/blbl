@@ -109,13 +109,29 @@ object MainRootNavRegistry {
     fun enabledStartupSpecs(): List<RootNavSpec> = enabledSpecs().filter { it.startupPageKey != null }
 
     fun sidebarItems(context: Context): List<SidebarNavAdapter.NavItem> {
-        return enabledSpecs().map { spec ->
+        val list =
+            enabledSpecs().map { spec ->
+                SidebarNavAdapter.NavItem(
+                    id = spec.navId,
+                    title = context.getString(spec.titleRes),
+                    iconRes = spec.iconRes,
+                )
+            }.toMutableList()
+        // 在"我的"（ID_MY）之后追加"本地历史"入口：点击直接启动 LocalHistoryActivity，
+        // 不切换 Fragment，所以不走 specs（避免强制 fragmentFactory）。
+        val myIndex = list.indexOfFirst { it.id == SidebarNavAdapter.ID_MY }
+        val historyItem =
             SidebarNavAdapter.NavItem(
-                id = spec.navId,
-                title = context.getString(spec.titleRes),
-                iconRes = spec.iconRes,
+                id = SidebarNavAdapter.ID_LOCAL_HISTORY,
+                title = context.getString(R.string.tab_local_history),
+                iconRes = R.drawable.ic_nav_history,
             )
+        if (myIndex >= 0) {
+            list.add(myIndex + 1, historyItem)
+        } else {
+            list.add(historyItem)
         }
+        return list
     }
 
     fun resolveLaunchNavId(startupPageKey: String): Int {

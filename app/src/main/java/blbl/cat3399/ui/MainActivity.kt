@@ -738,6 +738,13 @@ class MainActivity : BaseActivity(), SidebarFocusHost {
     }
 
     private fun handleSidebarNavClick(navId: Int): Boolean {
+        // "本地历史"入口：直接启动 LocalHistoryActivity，不切换 Fragment，不改选中态。
+        if (navId == SidebarNavAdapter.ID_LOCAL_HISTORY) {
+            startActivity(
+                android.content.Intent(this, blbl.cat3399.feature.settings.LocalHistoryActivity::class.java),
+            )
+            return false
+        }
         if (!isValidRootNavId(navId)) return false
         val current = currentRootNavId
         if (current != null && current == navId) {

@@ -142,8 +142,11 @@ class SearchInteractor(
         // Ensure query and UI reflect the actual keyword used.
         setQuery(keyword)
 
-        BiliClient.prefs.addSearchHistory(keyword)
-        reloadHistory()
+        // 无痕模式=完全无痕：不写本地搜索历史。
+        if (BiliClient.prefs.noTraceMode != blbl.cat3399.core.prefs.AppPrefs.NO_TRACE_MODE_FULL) {
+            BiliClient.prefs.addSearchHistory(keyword)
+            reloadHistory()
+        }
 
         renderer.hideImeAndClearQueryFocusIfNeeded()
         renderer.showResults()

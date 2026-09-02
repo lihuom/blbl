@@ -187,6 +187,13 @@ object SettingsText {
             else -> "Web"
         }
 
+    fun noTraceModeText(prefValue: String): String =
+        when (prefValue) {
+            blbl.cat3399.core.prefs.AppPrefs.NO_TRACE_MODE_LOCAL -> "本地有痕·网络无痕"
+            blbl.cat3399.core.prefs.AppPrefs.NO_TRACE_MODE_FULL -> "完全无痕"
+            else -> "关"
+        }
+
     fun uiScaleFactorText(factor: Float): String {
         val v = factor.takeIf { it.isFinite() } ?: 1.0f
         return String.format(Locale.US, "%.2fx", v)

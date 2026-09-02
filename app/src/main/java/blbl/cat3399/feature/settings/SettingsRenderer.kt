@@ -468,6 +468,12 @@ class SettingsRenderer(
                         "如果直播遇到问题,请关闭此功能",
                     ),
                     SettingEntry(SettingId.PlayerDebugEnabled, "显示视频调试信息", if (prefs.playerDebugEnabled) "开" else "关", null),
+                    SettingEntry(
+                        SettingId.NoTraceMode,
+                        "无痕模式",
+                        SettingsText.noTraceModeText(prefs.noTraceMode),
+                        "开启后播放进度/观看历史/心跳都不会上报B站（相当于未登录播放）",
+                    ),
                 )
 
             "弹幕设置" ->

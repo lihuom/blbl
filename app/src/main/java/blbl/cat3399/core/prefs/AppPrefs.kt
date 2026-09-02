@@ -663,6 +663,17 @@ class AppPrefs(context: Context) {
         get() = prefs.getBoolean(KEY_PLAYER_DEBUG, false)
         set(value) = prefs.edit().putBoolean(KEY_PLAYER_DEBUG, value).apply()
 
+    /**
+     * 无痕模式（参考 PiliPlus 的 "播放视为未登录"）。
+     * 三档：
+     *  - "off"   关闭（正常上报 B 站历史/心跳，本地保存搜索历史）
+     *  - "local" 本地有痕网络无痕（不上报 B 站，但本地仍保存搜索历史）
+     *  - "full"  完全无痕（不上报 B 站，也不写本地搜索历史）
+     */
+    var noTraceMode: String
+        get() = prefs.getString(KEY_NO_TRACE_MODE, NO_TRACE_MODE_OFF) ?: NO_TRACE_MODE_OFF
+        set(value) = prefs.edit().putString(KEY_NO_TRACE_MODE, value).apply()
+
     var playerDoubleBackToExit: Boolean
         get() = prefs.getBoolean(KEY_PLAYER_DOUBLE_BACK_TO_EXIT, true)
         set(value) = prefs.edit().putBoolean(KEY_PLAYER_DOUBLE_BACK_TO_EXIT, value).apply()
@@ -1126,6 +1137,7 @@ class AppPrefs(context: Context) {
         private const val KEY_MAIN_BACK_FOCUS_SCHEME = "main_back_focus_scheme"
         private const val KEY_VIDEO_CARD_LONG_PRESS_ACTION = "video_card_long_press_action"
         private const val KEY_PLAYER_DEBUG = "player_debug_enabled"
+        private const val KEY_NO_TRACE_MODE = "no_trace_mode"
         private const val KEY_PLAYER_DOUBLE_BACK_TO_EXIT = "player_double_back_on_ended"
         private const val KEY_PLAYER_DOWN_KEY_OSD_FOCUS_TARGET = "player_down_key_osd_focus_target"
         private const val KEY_PLAYER_TOGGLE_PLAY_STATE_SHOW_OSD = "player_toggle_play_state_show_osd"
@@ -1252,6 +1264,10 @@ class AppPrefs(context: Context) {
 
         const val API_SOURCE_WEB = "web"
         const val API_SOURCE_APP = "app"
+
+        const val NO_TRACE_MODE_OFF = "off"
+        const val NO_TRACE_MODE_LOCAL = "local"
+        const val NO_TRACE_MODE_FULL = "full"
 
         const val PLAYER_PLAYBACK_MODE_NONE = "none"
         const val PLAYER_PLAYBACK_MODE_LOOP_ONE = "loop_one"

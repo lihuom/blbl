@@ -2262,6 +2262,8 @@ class PlayerActivity : BaseActivity() {
     }
 
     private fun shouldReportHistoryNow(): Boolean {
+        // 无痕模式（local/full）：播放视为未登录，不上报历史。
+        if (BiliClient.prefs.noTraceMode != blbl.cat3399.core.prefs.AppPrefs.NO_TRACE_MODE_OFF) return false
         if (!BiliClient.cookies.hasSessData()) return false
         val csrf = BiliClient.cookies.getCookieValue("bili_jct").orEmpty().trim()
         if (csrf.isBlank()) return false
@@ -2290,6 +2292,8 @@ class PlayerActivity : BaseActivity() {
     }
 
     private fun shouldReportWebHeartbeatNow(): Boolean {
+        // 无痕模式（local/full）：播放视为未登录，不发 web 心跳。
+        if (BiliClient.prefs.noTraceMode != blbl.cat3399.core.prefs.AppPrefs.NO_TRACE_MODE_OFF) return false
         if (!BiliClient.cookies.hasSessData()) return false
         val csrf = BiliClient.cookies.getCookieValue("bili_jct").orEmpty().trim()
         if (csrf.isBlank()) return false
@@ -2306,7 +2310,13 @@ class PlayerActivity : BaseActivity() {
 
     private fun startReportProgressLoop() {
         if (reportProgressJob != null) return
-        if (!shouldReportAnyProgressNow()) return
+        // 无痕模式控制循环是否启动：
+        // - off（关）：按原逻辑（未登录/无 aid 等不启动）
+        // - local（本地有痕·网络无痕）：启动循环，用于在 reportProgressOnce 里写本地历史（不联网）
+        // - full（完全无痕）：不启动循环，既不联网也不写本地
+        val noTraceMode = BiliClient.prefs.noTraceMode
+        if (noTraceMode == blbl.cat3399.core.prefs.AppPrefs.NO_TRACE_MODE_FULL) return
+        if (noTraceMode == blbl.cat3399.core.prefs.AppPrefs.NO_TRACE_MODE_OFF && !shouldReportAnyProgressNow()) return
         val token = reportToken
         reportProgressJob =
             lifecycleScope.launch {
@@ -2329,6 +2339,17 @@ class PlayerActivity : BaseActivity() {
     }
 
     private suspend fun reportProgressOnce(force: Boolean, reason: String) {
+        // 无痕模式 = local：把当前播放项写入本地历史（不上报 B 站）。
+        // 无痕模式 = full：不写本地，也不上报 B 站。
+        // 无痕模式 = off：走原有上报流程，不写本地。
+        val noTraceMode = BiliClient.prefs.noTraceMode
+        if (noTraceMode != blbl.cat3399.core.prefs.AppPrefs.NO_TRACE_MODE_OFF) {
+            if (noTraceMode == blbl.cat3399.core.prefs.AppPrefs.NO_TRACE_MODE_LOCAL) {
+                runCatching { writeLocalHistoryOnce() }
+                    .onFailure { AppLog.w("PlayerActivity", "writeLocalHistory failed", it) }
+            }
+            return // 无痕模式不上报 B 站
+        }
         if (!shouldReportAnyProgressNow()) return
         val token = reportToken
         val exo = player ?: return
@@ -2391,6 +2412,45 @@ class PlayerActivity : BaseActivity() {
             lastReportAtMs = now
             lastReportedProgressSec = progressSec
         }
+    }
+
+    /**
+     * 无痕模式 = local 时：把当前播放项（标识 + 标题 + 进度）写入本地历史。
+     * 同 stableKey 仅保留最新一条，按 lastPlayedAt 倒序，上限 200 条（由 LocalHistoryStore 维护）。
+     * 不存封面/UP 主头像等网络资源，本地历史列表按文字展示。
+     */
+    private fun writeLocalHistoryOnce() {
+        val exo = player ?: return
+        val aid = currentAid ?: return
+        val cid = currentCid.takeIf { it > 0L } ?: return
+        val title = currentMainTitle?.takeIf { it.isNotBlank() } ?: return
+        val progressSec = (exo.currentPosition.coerceAtLeast(0L) / 1000L).coerceAtLeast(0L)
+        val durationMs = exo.duration.coerceAtLeast(0L)
+        val durationSec = if (durationMs <= 0L) 0 else (durationMs / 1000L).toInt()
+        val finished = durationSec > 0 && progressSec >= (durationSec.toLong() * 95L / 100L)
+        val epIdSafe = currentEpId?.takeIf { it > 0L }
+        val seasonIdSafe = currentSeasonId?.takeIf { it > 0L }
+        val stableKey = buildString {
+            if (currentBvid.isNotBlank()) append("bvid:").append(currentBvid)
+            else if (epIdSafe != null) append("ep:").append(epIdSafe)
+            else if (seasonIdSafe != null) append("sid:").append(seasonIdSafe)
+            else append("aid:").append(aid)
+        }
+        blbl.cat3399.core.prefs.LocalHistoryStore.upsert(
+            blbl.cat3399.core.prefs.LocalHistoryItem(
+                stableKey = stableKey,
+                bvid = currentBvid,
+                aid = aid,
+                cid = cid,
+                epId = epIdSafe,
+                seasonId = seasonIdSafe,
+                title = title,
+                durationSec = durationSec,
+                progressSec = progressSec,
+                lastPlayedAt = System.currentTimeMillis(),
+                finished = finished,
+            ),
+        )
     }
 
     internal fun updateDanmakuButton() {
