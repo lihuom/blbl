@@ -13,8 +13,10 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.SimpleItemAnimator
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import blbl.cat3399.R
+import blbl.cat3399.core.log.AppLog
 import blbl.cat3399.core.net.BiliClient
 import blbl.cat3399.core.paging.PagedGridStateMachine
+import blbl.cat3399.core.phoneinput.PhoneInputServer
 import blbl.cat3399.core.ui.DpadGridController
 import blbl.cat3399.core.ui.FocusTreeUtils
 import blbl.cat3399.core.ui.GridSpanPolicy
@@ -457,6 +459,40 @@ class SearchRenderer internal constructor(
                 else -> false
             }
         }
+
+        setupPhoneInput()
+    }
+
+    /**
+     * 手机扫码输入：启动本地 HTTP 服务，生成二维码显示在搜索历史面板底部。
+     * 手机扫码打开网页，输入文本后可投送到搜索框或直接搜索。
+     */
+    private fun setupPhoneInput() {
+        val url = PhoneInputServer.buildUrl()
+        if (url == null) {
+            AppLog.w("Search", "phone input: no lan ip, hide qr")
+            binding.panelPhoneInput.visibility = View.GONE
+            return
+        }
+        if (!PhoneInputServer.start()) {
+            AppLog.w("Search", "phone input server start failed, hide qr")
+            binding.panelPhoneInput.visibility = View.GONE
+            return
+        }
+        val bmp = PhoneInputServer.generateQrBitmap(url)
+        if (bmp != null) {
+            binding.ivPhoneQr.setImageBitmap(bmp)
+        }
+        binding.tvPhoneUrl.text = url
+        binding.panelPhoneInput.visibility = View.VISIBLE
+
+        PhoneInputServer.setListener { text, action ->
+            if (released || !fragment.isResumed) return@setListener
+            interactor.setQuery(text)
+            if (action == PhoneInputServer.Action.SEARCH) {
+                interactor.performSearch()
+            }
+        }
     }
 
     fun setupResults() {
@@ -636,6 +672,8 @@ class SearchRenderer internal constructor(
     fun release() {
         if (released) return
         released = true
+        PhoneInputServer.setListener(null)
+        PhoneInputServer.stop()
         resultsGridController?.release()
         resultsGridController = null
         suggestGridController?.release()

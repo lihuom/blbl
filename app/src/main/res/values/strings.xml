@@ -51,6 +51,7 @@
     <string name="search_backspace">后退</string>
     <string name="search_action">搜索</string>
     <string name="search_clear_history">清空搜索记录</string>
+    <string name="search_phone_input">手机扫码输入</string>
     <string name="search_tab_video">视频</string>
     <string name="search_tab_bangumi">番剧</string>
     <string name="search_tab_media">影视</string>

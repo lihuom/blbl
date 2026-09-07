@@ -30,6 +30,9 @@
     <color name="blbl_focus_fill">#4D333333</color>
     <color name="blbl_focus_fill_pressed">#66333333</color>
 
+    <!-- 搜索键盘按键背景：深灰，与搜索页底色区分。 -->
+    <color name="blbl_key_bg">#3A3A3A</color>
+
     <!-- Accent derived colors: keep alpha variants centralized. -->
     <color name="blbl_accent_violet_container">#338A2BE2</color>
     <color name="blbl_accent_violet_weak">#668A2BE2</color>

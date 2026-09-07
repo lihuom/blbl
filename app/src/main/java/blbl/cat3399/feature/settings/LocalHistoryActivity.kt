@@ -31,6 +31,7 @@ class LocalHistoryActivity : BaseActivity() {
     private lateinit var emptyView: TextView
     private lateinit var btnClear: View
     private lateinit var btnBack: View
+    private lateinit var btnSettings: View
     private val adapter = LocalHistoryAdapter { item -> openDetail(item) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -41,11 +42,18 @@ class LocalHistoryActivity : BaseActivity() {
         emptyView = findViewById(R.id.tv_empty)
         btnClear = findViewById(R.id.btn_clear)
         btnBack = findViewById(R.id.btn_back)
+        btnSettings = findViewById(R.id.btn_settings)
 
         recycler.layoutManager = LinearLayoutManager(this)
         recycler.adapter = adapter
 
         btnBack.setOnClickListener { finish() }
+        btnSettings.setOnClickListener {
+            // 直接打开设置页的"其他设置"分区（无痕模式 tab）
+            val intent = Intent(this, SettingsActivity::class.java)
+                .putExtra(SettingsActivity.EXTRA_SECTION, SettingsActivity.SECTION_OTHER)
+            startActivity(intent)
+        }
         btnClear.setOnClickListener {
             if (adapter.itemCount == 0) {
                 AppToast.show(this, "无可清空的本地历史")

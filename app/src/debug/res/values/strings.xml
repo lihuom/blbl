@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  debug 构建变体专用：桌面显示名加 "(DEBUG)" 后缀，一眼区分 release。
+  Android 构建系统会自动合并 src/debug/res 覆盖 src/main/res 中的同名资源。
+-->
+<resources>
+    <string name="app_name">Blbl (DEBUG)</string>
+</resources>

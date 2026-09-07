@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  debug 构建变体专用 adaptive-icon：
+  - 背景色改成醒目的蓝色（#FF1F6FEB），和 release 的白底形成强烈对比
+  - 前景仍用官方 ic_launcher_foreground，保留 B 站 TV 图标的辨识度
+  覆盖 mipmap-anydpi-v26（API 26+，绝大多数设备）。
+-->
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@drawable/ic_launcher_background_debug" />
+    <foreground android:drawable="@mipmap/ic_launcher_foreground" />
+</adaptive-icon>

@@ -17,6 +17,23 @@ import blbl.cat3399.core.ui.popup.PopupHost
 import blbl.cat3399.databinding.ActivitySettingsBinding
 
 class SettingsActivity : BaseActivity() {
+    companion object {
+        /**
+         * 通过 Intent 指定首次展示的分区（左侧 tab，从 0 开始）。
+         * 未设置或越界时按默认：0（通用设置）。
+         *
+         * 示例：跳"其他设置"（无痕模式所在分区）→ putExtra(EXTRA_SECTION, 6)
+         */
+        const val EXTRA_SECTION = "extra_section"
+        const val SECTION_GENERAL = 0
+        const val SECTION_PAGE = 1
+        const val SECTION_PLAYER = 2
+        const val SECTION_DANMAKU = 3
+        const val SECTION_ABOUT = 4
+        const val SECTION_DEVICE = 5
+        const val SECTION_OTHER = 6
+    }
+
     private lateinit var binding: ActivitySettingsBinding
     private val state = SettingsState()
     private lateinit var leftAdapter: SettingsLeftAdapter
@@ -95,7 +112,9 @@ class SettingsActivity : BaseActivity() {
         interactionHandler.renderer = renderer
 
         renderer.installFocusListener()
-        renderer.showSection(0)
+        val defaultSection =
+            intent.getIntExtra(EXTRA_SECTION, SECTION_GENERAL).coerceIn(SECTION_GENERAL, sections.lastIndex)
+        renderer.showSection(defaultSection)
     }
 
     override fun onResume() {

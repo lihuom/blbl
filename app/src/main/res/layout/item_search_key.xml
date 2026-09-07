@@ -3,16 +3,16 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/card"
     android:layout_width="match_parent"
-    android:layout_height="48dp"
-    android:layout_margin="6dp"
+    android:layout_height="38dp"
+    android:layout_margin="2dp"
     android:clickable="true"
     android:focusable="true"
     android:stateListAnimator="@animator/blbl_focus_scale"
-    app:cardBackgroundColor="?attr/colorSurface"
-    app:cardCornerRadius="12dp"
+    app:cardBackgroundColor="@color/blbl_key_bg"
+    app:cardCornerRadius="8dp"
     app:cardElevation="0dp"
-    app:strokeColor="?attr/blblFocusStrokeColor"
-    app:strokeWidth="2dp">
+    app:strokeColor="@color/blbl_key_bg"
+    app:strokeWidth="0dp">
 
     <TextView
         android:id="@+id/tv_label"
@@ -21,6 +21,6 @@
         android:gravity="center"
         android:text="A"
         android:textColor="?attr/colorOnSurface"
-        android:textSize="18sp"
+        android:textSize="15sp"
         android:textStyle="bold" />
 </com.google.android.material.card.MaterialCardView>
