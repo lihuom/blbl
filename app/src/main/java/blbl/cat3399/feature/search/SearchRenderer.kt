@@ -686,6 +686,7 @@ class SearchRenderer internal constructor(
         state.resultsVisible = false
         binding.panelResults.visibility = View.GONE
         binding.panelInput.visibility = View.VISIBLE
+        interactor.renderInputPanelFromState()
     }
 
     fun showResults() {
