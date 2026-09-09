@@ -78,6 +78,7 @@ class VideoDetailActivity : BaseActivity() {
     private var bvid: String = ""
     private var cid: Long? = null
     private var aid: Long? = null
+    private var startPositionMs: Long? = null
 
     private var ownerMid: Long? = null
     private var ownerName: String? = null
@@ -125,6 +126,7 @@ class VideoDetailActivity : BaseActivity() {
         bvid = intent.getStringExtra(EXTRA_BVID).orEmpty().trim()
         cid = intent.getLongExtra(EXTRA_CID, -1L).takeIf { it > 0L }
         aid = intent.getLongExtra(EXTRA_AID, -1L).takeIf { it > 0L }
+        startPositionMs = intent.getLongExtra(EXTRA_START_POSITION_MS, -1L).takeIf { it > 0L }
         playlistToken = intent.getStringExtra(EXTRA_PLAYLIST_TOKEN)?.trim()?.takeIf { it.isNotBlank() }
         playlistIndex = intent.getIntExtra(EXTRA_PLAYLIST_INDEX, -1).takeIf { it >= 0 }
 
@@ -538,7 +540,8 @@ class VideoDetailActivity : BaseActivity() {
                 .putExtra(PlayerActivity.EXTRA_CID, cid ?: -1L)
                 .apply { aid?.let { putExtra(PlayerActivity.EXTRA_AID, it) } }
                 .apply { playlistToken?.let { putExtra(PlayerActivity.EXTRA_PLAYLIST_TOKEN, it) } }
-                .apply { playlistIndex?.let { putExtra(PlayerActivity.EXTRA_PLAYLIST_INDEX, it) } },
+                .apply { playlistIndex?.let { putExtra(PlayerActivity.EXTRA_PLAYLIST_INDEX, it) } }
+                .apply { startPositionMs?.let { putExtra(PlayerActivity.EXTRA_START_POSITION_MS, it) } },
         )
     }
 
@@ -562,7 +565,8 @@ class VideoDetailActivity : BaseActivity() {
                 .putExtra(PlayerActivity.EXTRA_CID, picked.cid ?: -1L)
                 .apply { picked.aid?.let { putExtra(PlayerActivity.EXTRA_AID, it) } }
                 .putExtra(PlayerActivity.EXTRA_PLAYLIST_TOKEN, token)
-                .putExtra(PlayerActivity.EXTRA_PLAYLIST_INDEX, index),
+                .putExtra(PlayerActivity.EXTRA_PLAYLIST_INDEX, index)
+                .apply { startPositionMs?.let { putExtra(PlayerActivity.EXTRA_START_POSITION_MS, it) } },
         )
     }
 
@@ -587,7 +591,8 @@ class VideoDetailActivity : BaseActivity() {
                 .putExtra(PlayerActivity.EXTRA_CID, picked.cid ?: -1L)
                 .apply { picked.aid?.let { putExtra(PlayerActivity.EXTRA_AID, it) } }
                 .putExtra(PlayerActivity.EXTRA_PLAYLIST_TOKEN, token)
-                .putExtra(PlayerActivity.EXTRA_PLAYLIST_INDEX, index),
+                .putExtra(PlayerActivity.EXTRA_PLAYLIST_INDEX, index)
+                .apply { startPositionMs?.let { putExtra(PlayerActivity.EXTRA_START_POSITION_MS, it) } },
         )
     }
 
@@ -699,6 +704,7 @@ class VideoDetailActivity : BaseActivity() {
         const val EXTRA_OWNER_MID: String = "owner_mid"
         const val EXTRA_PLAYLIST_TOKEN: String = "playlist_token"
         const val EXTRA_PLAYLIST_INDEX: String = "playlist_index"
+        const val EXTRA_START_POSITION_MS: String = "start_position_ms"
 
         private const val ACTIVITY_STACK_GROUP: String = "video_detail_flow"
         private const val ACTIVITY_STACK_MAX_DEPTH: Int = 3

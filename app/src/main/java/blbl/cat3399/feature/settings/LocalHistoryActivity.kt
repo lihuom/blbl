@@ -93,6 +93,9 @@ class LocalHistoryActivity : BaseActivity() {
             .putExtra(VideoDetailActivity.EXTRA_AID, item.aid)
             .putExtra(VideoDetailActivity.EXTRA_CID, item.cid)
             .putExtra(VideoDetailActivity.EXTRA_TITLE, item.title)
+        item.progressSec.takeIf { it > 0L }?.let {
+            intent.putExtra(VideoDetailActivity.EXTRA_START_POSITION_MS, it * 1000L)
+        }
         item.epId?.let { intent.putExtra("ep_id", it) }
         item.seasonId?.let { intent.putExtra("season_id", it) }
         startActivity(intent)
