@@ -10,6 +10,7 @@ import blbl.cat3399.core.paging.PagedGridStateMachine
 import blbl.cat3399.core.paging.appliedOrNull
 import blbl.cat3399.core.ui.AppToast
 import blbl.cat3399.core.ui.popup.AppPopup
+import blbl.cat3399.feature.video.VideoDetailActivity
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -139,6 +140,9 @@ class SearchInteractor(
         val keyword = effectiveKeyword().trim()
         if (keyword.isBlank()) return
 
+        // 如果是 B 站视频链接 / BV号 / av号，直接打开视频详情页（支持 t=秒 空降）。
+        openVideoLinkIfAny(keyword)?.let { return }
+
         // Ensure query and UI reflect the actual keyword used.
         setQuery(keyword)
 
@@ -164,6 +168,80 @@ class SearchInteractor(
 
         resetAndLoad()
         renderer.focusSelectedTabAfterShow()
+    }
+
+    /**
+     * 判断输入是否为 B 站视频链接 / BV号 / av号，若是则直接打开视频详情页并返回 Unit，否则返回 null。
+     * 支持格式：
+     *   - https://www.bilibili.com/video/BV1b14X6iEpr[?t=123]
+     *   - https://www.bilibili.com/video/av123456[?t=123]
+     *   - BV1b14X6iEpr
+     *   - av123456
+     */
+    private fun openVideoLinkIfAny(input: String): Unit? {
+        val (bvid, aid, seekSec) = parseBiliVideoLink(input) ?: return null
+        val context = fragment.context ?: return null
+        if (bvid.isBlank() && aid == null) return null
+
+        val intent = android.content.Intent(context, VideoDetailActivity::class.java).apply {
+            if (bvid.isNotBlank()) putExtra(VideoDetailActivity.EXTRA_BVID, bvid)
+            aid?.let { putExtra(VideoDetailActivity.EXTRA_AID, it) }
+            seekSec?.takeIf { it > 0L }?.let { putExtra(VideoDetailActivity.EXTRA_START_POSITION_MS, it * 1000L) }
+        }
+        fragment.startActivity(intent)
+        return Unit
+    }
+
+    private data class BiliVideoLink(val bvid: String, val aid: Long?, val seekSec: Long?)
+
+    private fun parseBiliVideoLink(input: String): BiliVideoLink? {
+        val raw = input.trim()
+        if (raw.isBlank()) return null
+
+        // 纯 BV 号：BV 开头 + 10 位字母数字
+        val bvOnly = BV_REGEX.find(raw)
+        if (bvOnly != null && raw.length <= bvOnly.value.length + 2) {
+            return BiliVideoLink(bvid = bvOnly.value, aid = null, seekSec = null)
+        }
+        // 纯 av 号
+        val avOnly = AV_REGEX.find(raw)
+        if (avOnly != null && raw.length <= avOnly.value.length + 2) {
+            return BiliVideoLink(bvid = "", aid = avOnly.groupValues[1].toLongOrNull(), seekSec = null)
+        }
+
+        // URL 形式：提取 path 和 query
+        val url = raw.lowercase()
+        if (!url.contains("bilibili.com") && !url.contains("b23.tv")) {
+            // 可能只包含 BV 号但有其他字符，尝试在 URL path 中找
+            val bvInUrl = BV_REGEX.find(raw)
+            if (bvInUrl != null) {
+                val seek = extractSeekSeconds(raw)
+                return BiliVideoLink(bvid = bvInUrl.value, aid = null, seekSec = seek)
+            }
+            return null
+        }
+
+        // 从 path 中提取 BV 或 av
+        val bvMatch = BV_REGEX.find(raw)
+        if (bvMatch != null) {
+            return BiliVideoLink(bvid = bvMatch.value, aid = null, seekSec = extractSeekSeconds(raw))
+        }
+        val avMatch = AV_REGEX.find(raw)
+        if (avMatch != null) {
+            return BiliVideoLink(bvid = "", aid = avMatch.groupValues[1].toLongOrNull(), seekSec = extractSeekSeconds(raw))
+        }
+        return null
+    }
+
+    private fun extractSeekSeconds(input: String): Long? {
+        // 匹配 ?t=123 或 &t=123 或 #t=123
+        val match = Regex("[?&#]t=(\\d+)").find(input) ?: return null
+        return match.groupValues[1].toLongOrNull()
+    }
+
+    companion object {
+        private val BV_REGEX = Regex("BV[0-9a-zA-Z]{10}")
+        private val AV_REGEX = Regex("av(\\d+)", RegexOption.IGNORE_CASE)
     }
 
     fun onTabSelected(position: Int) {
