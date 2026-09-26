@@ -226,6 +226,10 @@ class AppPrefs(context: Context) {
         get() = prefs.getBoolean(KEY_DANMAKU_SHOW_HIGH_LIKE_ICON, true)
         set(value) = prefs.edit().putBoolean(KEY_DANMAKU_SHOW_HIGH_LIKE_ICON, value).apply()
 
+    var danmakuMergeDuplicate: Boolean
+        get() = prefs.getBoolean(KEY_DANMAKU_MERGE_DUPLICATE, true)
+        set(value) = prefs.edit().putBoolean(KEY_DANMAKU_MERGE_DUPLICATE, value).apply()
+
     var danmakuOpacity: Float
         get() = prefs.getFloat(KEY_DANMAKU_OPACITY, 1.0f)
         set(value) = prefs.edit().putFloat(KEY_DANMAKU_OPACITY, value).apply()
@@ -1095,6 +1099,7 @@ class AppPrefs(context: Context) {
         private const val KEY_DANMAKU_AI_LEVEL = "danmaku_ai_level"
         private const val KEY_DANMAKU_FOLLOW_BILI_SHIELD = "danmaku_follow_bili_shield"
         private const val KEY_DANMAKU_SHOW_HIGH_LIKE_ICON = "danmaku_show_high_like_icon"
+        private const val KEY_DANMAKU_MERGE_DUPLICATE = "danmaku_merge_duplicate"
         private const val KEY_DANMAKU_OPACITY = "danmaku_opacity"
         private const val KEY_DANMAKU_TEXT_SIZE_SP = "danmaku_text_size_sp"
         private const val KEY_DANMAKU_LANE_DENSITY = "danmaku_lane_density"

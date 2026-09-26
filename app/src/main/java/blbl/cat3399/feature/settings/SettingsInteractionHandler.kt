@@ -1130,6 +1130,11 @@ class SettingsInteractionHandler(
                 renderer.refreshSection(entry.id)
             }
 
+            SettingId.DanmakuMergeDuplicate -> {
+                prefs.danmakuMergeDuplicate = !prefs.danmakuMergeDuplicate
+                renderer.refreshSection(entry.id)
+            }
+
             SettingId.DanmakuAiShieldEnabled -> {
                 prefs.danmakuAiShieldEnabled = !prefs.danmakuAiShieldEnabled
                 renderer.refreshSection(entry.id)

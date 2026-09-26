@@ -140,12 +140,16 @@ object PhoneInputServer : Closeable {
                 EncodeHintType.MARGIN to 1,
             )
             val matrix = QRCodeWriter().encode(url, BarcodeFormat.QR_CODE, size, size, hints)
-            val bmp = Bitmap.createBitmap(size, size, Bitmap.Config.RGB_565)
+            // 批量生成像素数组，避免 26 万次 setPixel 调用
+            val pixels = IntArray(size * size)
             for (y in 0 until size) {
+                val rowOffset = y * size
                 for (x in 0 until size) {
-                    bmp.setPixel(x, y, if (matrix[x, y]) Color.BLACK else Color.WHITE)
+                    pixels[rowOffset + x] = if (matrix[x, y]) Color.BLACK else Color.WHITE
                 }
             }
+            val bmp = Bitmap.createBitmap(size, size, Bitmap.Config.RGB_565)
+            bmp.setPixels(pixels, 0, size, 0, 0, size, size)
             bmp
         }.onFailure { AppLog.w("PhoneInput", "generate qr failed", it) }.getOrNull()
     }
@@ -231,7 +235,7 @@ object PhoneInputServer : Closeable {
         val colon = json.indexOf(':', idx + keyToken.length)
         if (colon < 0) return null
         var i = colon + 1
-        while (i < json.length && (json[i] == ' ' || json[i] == '\t' || json[i] == '\n' || json[i] == '\r')) i++
+        while (i < json.length && json[i].isWhitespace()) i++
         if (i >= json.length) return null
         if (json[i] != '"') return null // 只处理字符串值
         i++
@@ -246,6 +250,16 @@ object PhoneInputServer : Closeable {
                     '"' -> sb.append('"')
                     '\\' -> sb.append('\\')
                     '/' -> sb.append('/')
+                    'u' -> {
+                        // \uXXXX 四字节十六进制
+                        if (i + 5 < json.length) {
+                            val hex = json.substring(i + 2, i + 6)
+                            sb.append(hex.toIntOrNull(16)?.toChar() ?: next)
+                            i += 6
+                            continue
+                        }
+                        sb.append(next)
+                    }
                     else -> sb.append(next)
                 }
                 i += 2
@@ -260,38 +274,25 @@ object PhoneInputServer : Closeable {
     }
 
     private fun respondHtml(socket: Socket, html: String) {
-        val bytes = html.toByteArray(StandardCharsets.UTF_8)
-        val out = BufferedOutputStream(socket.getOutputStream())
-        out.write("HTTP/1.1 200 OK\r\n".toByteArray(StandardCharsets.ISO_8859_1))
-        out.write("Content-Type: text/html; charset=utf-8\r\n".toByteArray(StandardCharsets.ISO_8859_1))
-        out.write("Content-Length: ${bytes.size}\r\n".toByteArray(StandardCharsets.ISO_8859_1))
-        out.write("Connection: close\r\n".toByteArray(StandardCharsets.ISO_8859_1))
-        out.write("\r\n".toByteArray(StandardCharsets.ISO_8859_1))
-        out.write(bytes)
-        out.flush()
+        respond(socket, 200, "OK", "text/html; charset=utf-8", html.toByteArray(StandardCharsets.UTF_8))
     }
 
     private fun respondJson(socket: Socket, json: String) {
-        val bytes = json.toByteArray(StandardCharsets.UTF_8)
-        val out = BufferedOutputStream(socket.getOutputStream())
-        out.write("HTTP/1.1 200 OK\r\n".toByteArray(StandardCharsets.ISO_8859_1))
-        out.write("Content-Type: application/json; charset=utf-8\r\n".toByteArray(StandardCharsets.ISO_8859_1))
-        out.write("Content-Length: ${bytes.size}\r\n".toByteArray(StandardCharsets.ISO_8859_1))
-        out.write("Connection: close\r\n".toByteArray(StandardCharsets.ISO_8859_1))
-        out.write("\r\n".toByteArray(StandardCharsets.ISO_8859_1))
-        out.write(bytes)
-        out.flush()
+        respond(socket, 200, "OK", "application/json; charset=utf-8", json.toByteArray(StandardCharsets.UTF_8))
     }
 
     private fun respondPlain(socket: Socket, code: Int, message: String, body: String) {
-        val bytes = body.toByteArray(StandardCharsets.UTF_8)
+        respond(socket, code, message, "text/plain; charset=utf-8", body.toByteArray(StandardCharsets.UTF_8))
+    }
+
+    private fun respond(socket: Socket, code: Int, message: String, contentType: String, body: ByteArray) {
         val out = BufferedOutputStream(socket.getOutputStream())
         out.write("HTTP/1.1 $code $message\r\n".toByteArray(StandardCharsets.ISO_8859_1))
-        out.write("Content-Type: text/plain; charset=utf-8\r\n".toByteArray(StandardCharsets.ISO_8859_1))
-        out.write("Content-Length: ${bytes.size}\r\n".toByteArray(StandardCharsets.ISO_8859_1))
+        out.write("Content-Type: $contentType\r\n".toByteArray(StandardCharsets.ISO_8859_1))
+        out.write("Content-Length: ${body.size}\r\n".toByteArray(StandardCharsets.ISO_8859_1))
         out.write("Connection: close\r\n".toByteArray(StandardCharsets.ISO_8859_1))
         out.write("\r\n".toByteArray(StandardCharsets.ISO_8859_1))
-        out.write(bytes)
+        out.write(body)
         out.flush()
     }
 

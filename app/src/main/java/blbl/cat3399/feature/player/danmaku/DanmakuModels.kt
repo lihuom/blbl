@@ -69,6 +69,7 @@ data class DanmakuSessionSettings(
     val allowBottom: Boolean = true,
     val allowColor: Boolean = true,
     val allowSpecial: Boolean = true,
+    val mergeDuplicate: Boolean = true,
 ) {
     fun toConfig(): DanmakuConfig =
         DanmakuConfig(

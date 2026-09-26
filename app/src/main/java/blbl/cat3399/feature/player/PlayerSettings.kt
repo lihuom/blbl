@@ -54,6 +54,7 @@ internal object PlayerSettingKeys {
     const val DANMAKU_LANE_DENSITY = "danmaku_lane_density"
     const val DANMAKU_FOLLOW_BILI_SHIELD = "danmaku_follow_bili_shield"
     const val DANMAKU_SHOW_HIGH_LIKE_ICON = "danmaku_show_high_like_icon"
+    const val DANMAKU_MERGE_DUPLICATE = "danmaku_merge_duplicate"
     const val DANMAKU_AI_SHIELD_ENABLED = "danmaku_ai_shield_enabled"
     const val DANMAKU_AI_SHIELD_LEVEL = "danmaku_ai_shield_level"
     const val DANMAKU_ALLOW_SCROLL = "danmaku_allow_scroll"
@@ -373,6 +374,12 @@ internal fun PlayerActivity.handleSettingsItemClick(item: PlayerSettingsAdapter.
                 syncToGlobal = { danmakuShowHighLikeIcon = it },
                 afterApplied = { binding.danmakuView.invalidate() },
             )
+        PlayerSettingKeys.DANMAKU_MERGE_DUPLICATE ->
+            toggleDanmakuReloadSettingFlag(
+                current = session.danmaku.mergeDuplicate,
+                updateDanmaku = { copy(mergeDuplicate = it) },
+                syncToGlobal = { danmakuMergeDuplicate = it },
+            )
         PlayerSettingKeys.DANMAKU_AI_SHIELD_ENABLED ->
             toggleDanmakuReloadSettingFlag(
                 current = session.danmaku.aiShieldEnabled,
@@ -567,6 +574,7 @@ private fun PlayerActivity.buildDanmakuSettingsItems(): List<PlayerSettingsAdapt
         settingItem(PlayerSettingKeys.DANMAKU_LANE_DENSITY, "轨道密度", danmakuLaneDensityText(session.danmaku.laneDensity)),
         settingItem(PlayerSettingKeys.DANMAKU_FOLLOW_BILI_SHIELD, "跟随B站弹幕屏蔽", session.danmaku.followBiliShield.switchText()),
         settingItem(PlayerSettingKeys.DANMAKU_SHOW_HIGH_LIKE_ICON, "显示高赞弹幕图标", session.danmaku.showHighLikeIcon.switchText()),
+        settingItem(PlayerSettingKeys.DANMAKU_MERGE_DUPLICATE, "合并弹幕", session.danmaku.mergeDuplicate.switchText()),
         settingItem(PlayerSettingKeys.DANMAKU_AI_SHIELD_ENABLED, "智能云屏蔽", session.danmaku.aiShieldEnabled.switchText()),
         settingItem(PlayerSettingKeys.DANMAKU_AI_SHIELD_LEVEL, "智能云屏蔽等级", aiLevelText(session.danmaku.aiShieldLevel)),
         settingItem(PlayerSettingKeys.DANMAKU_ALLOW_SCROLL, "允许滚动弹幕", session.danmaku.allowScroll.switchText()),

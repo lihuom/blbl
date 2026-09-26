@@ -198,50 +198,27 @@ class SearchInteractor(
         val raw = input.trim()
         if (raw.isBlank()) return null
 
-        // 纯 BV 号：BV 开头 + 10 位字母数字
-        val bvOnly = BV_REGEX.find(raw)
-        if (bvOnly != null && raw.length <= bvOnly.value.length + 2) {
-            return BiliVideoLink(bvid = bvOnly.value, aid = null, seekSec = null)
+        // 优先从输入中提取 BV 号（支持纯 BV 号和 URL 形式）
+        BV_REGEX.find(raw)?.let { match ->
+            return BiliVideoLink(bvid = match.value, aid = null, seekSec = extractSeekSeconds(raw))
         }
-        // 纯 av 号
-        val avOnly = AV_REGEX.find(raw)
-        if (avOnly != null && raw.length <= avOnly.value.length + 2) {
-            return BiliVideoLink(bvid = "", aid = avOnly.groupValues[1].toLongOrNull(), seekSec = null)
-        }
-
-        // URL 形式：提取 path 和 query
-        val url = raw.lowercase()
-        if (!url.contains("bilibili.com") && !url.contains("b23.tv")) {
-            // 可能只包含 BV 号但有其他字符，尝试在 URL path 中找
-            val bvInUrl = BV_REGEX.find(raw)
-            if (bvInUrl != null) {
-                val seek = extractSeekSeconds(raw)
-                return BiliVideoLink(bvid = bvInUrl.value, aid = null, seekSec = seek)
-            }
-            return null
-        }
-
-        // 从 path 中提取 BV 或 av
-        val bvMatch = BV_REGEX.find(raw)
-        if (bvMatch != null) {
-            return BiliVideoLink(bvid = bvMatch.value, aid = null, seekSec = extractSeekSeconds(raw))
-        }
-        val avMatch = AV_REGEX.find(raw)
-        if (avMatch != null) {
-            return BiliVideoLink(bvid = "", aid = avMatch.groupValues[1].toLongOrNull(), seekSec = extractSeekSeconds(raw))
+        // 再尝试 av 号
+        AV_REGEX.find(raw)?.let { match ->
+            return BiliVideoLink(bvid = "", aid = match.groupValues[1].toLongOrNull(), seekSec = extractSeekSeconds(raw))
         }
         return null
     }
 
     private fun extractSeekSeconds(input: String): Long? {
         // 匹配 ?t=123 或 &t=123 或 #t=123
-        val match = Regex("[?&#]t=(\\d+)").find(input) ?: return null
+        val match = SEEK_REGEX.find(input) ?: return null
         return match.groupValues[1].toLongOrNull()
     }
 
     companion object {
         private val BV_REGEX = Regex("BV[0-9a-zA-Z]{10}")
         private val AV_REGEX = Regex("av(\\d+)", RegexOption.IGNORE_CASE)
+        private val SEEK_REGEX = Regex("[?&#]t=(\\d+)")
     }
 
     fun onTabSelected(position: Int) {

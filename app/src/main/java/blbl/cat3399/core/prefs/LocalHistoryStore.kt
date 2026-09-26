@@ -31,6 +31,7 @@ object LocalHistoryStore {
     /**
      * 写入或更新一条本地历史（同 stableKey 仅保留最新一条，移到列表头）。
      */
+    @Synchronized
     fun upsert(item: LocalHistoryItem) {
         ensureInit()
         val list = getAll().toMutableList()
@@ -69,6 +70,7 @@ object LocalHistoryStore {
         }.getOrDefault(emptyList())
     }
 
+    @Synchronized
     fun remove(stableKey: String) {
         ensureInit()
         val list = getAll().toMutableList()
@@ -76,6 +78,7 @@ object LocalHistoryStore {
         save(list)
     }
 
+    @Synchronized
     fun clear() {
         ensureInit()
         prefs.edit().remove(KEY_ITEMS).apply()

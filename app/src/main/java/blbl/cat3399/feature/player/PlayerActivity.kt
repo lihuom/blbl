@@ -81,6 +81,7 @@ import blbl.cat3399.feature.my.BangumiDetailActivity
 import blbl.cat3399.feature.player.danmaku.DanmakuSessionSettings
 import blbl.cat3399.feature.player.danmaku.DanmakuFontWeight
 import blbl.cat3399.feature.player.danmaku.DanmakuLaneDensity
+import blbl.cat3399.feature.player.danmaku.DanmakuMerger
 import blbl.cat3399.feature.player.engine.BlblPlayerEngine
 import blbl.cat3399.feature.player.engine.DashPlaybackCatalogResolver
 import blbl.cat3399.feature.player.engine.ExoPlayerEngine
@@ -826,6 +827,7 @@ class PlayerActivity : BaseActivity() {
                 allowBottom = prefs.danmakuAllowBottom,
                 allowColor = prefs.danmakuAllowColor,
                 allowSpecial = prefs.danmakuAllowSpecial,
+                mergeDuplicate = prefs.danmakuMergeDuplicate,
             ),
             debugEnabled = prefs.playerDebugEnabled,
             engineKind = PlayerEngineKind.fromPrefValue(prefs.playerEngineKind),
@@ -3532,7 +3534,10 @@ class PlayerActivity : BaseActivity() {
                             continue
                         }
                         val before = list.size
-                        val filtered = if (shield != null) list.filter(shield::allow) else list
+                        var filtered = if (shield != null) list.filter(shield::allow) else list
+                        if (session.danmaku.mergeDuplicate) {
+                            filtered = DanmakuMerger.merge(filtered)
+                        }
                         val sorted = if (filtered.size <= 1) filtered else filtered.sortedBy { it.timeMs }
                         val after = sorted.size
                         if (debugEnabled) {
