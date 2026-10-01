@@ -1209,7 +1209,7 @@ class SettingsInteractionHandler(
                 val options =
                     PlaybackSettingChoices.resolutionQns.map { it to SettingsText.qnText(it) }
                 showChoiceDialog(
-                    title = "默认画质（竖屏）",
+                    title = "默认画质（竖屏）\n部分设备超过 1080P 播放不了",
                     items = options.map { it.second },
                     current = SettingsText.qnText(prefs.playerPreferredQnPortrait),
                 ) { selected ->

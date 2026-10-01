@@ -2884,6 +2884,14 @@ class PlayerActivity : BaseActivity() {
 
             val rawVideoItems = dash.videos.filter { it.urls.isNotEmpty() && it.qn > 0 }
 
+            // 从视频轨道的实际尺寸判断是否为竖屏视频（比 detail.dimension 更可靠）
+            val isPortraitFromTracks = rawVideoItems.any { v ->
+                val w = v.info.width ?: 0
+                val h = v.info.height ?: 0
+                w > 0 && h > 0 && h > w
+            }
+            currentVideoIsPortrait = isPortraitFromTracks
+
             val videoItems =
                 rawVideoItems.filterNot { v ->
                     v.isDolbyVision && !constraints.allowDolbyVision
@@ -2892,7 +2900,20 @@ class PlayerActivity : BaseActivity() {
             val rawQns = rawVideoItems.map { it.qn }.filter { it > 0 }.distinct()
             val availableQns = videoItems.map { it.qn }.filter { it > 0 }.distinct()
 
-            val desiredQn = session.targetQn.takeIf { it > 0 } ?: session.preferredQn
+            // 竖屏视频：画质不超过用户设置的竖屏上限
+            val desiredQn = run {
+                val base = session.targetQn.takeIf { it > 0 } ?: session.preferredQn
+                if (isPortraitFromTracks) {
+                    val portraitMax = BiliClient.prefs.playerPreferredQnPortrait
+                    if (portraitMax > 0 && (base <= 0 || qnRank(base) > qnRank(portraitMax))) {
+                        portraitMax
+                    } else {
+                        base
+                    }
+                } else {
+                    base
+                }
+            }
             val pickedQn = pickQnByQualityOrder(availableQns, desiredQn)
 
             val candidatesByQn = if (pickedQn > 0) videoItems.filter { it.qn == pickedQn } else videoItems
