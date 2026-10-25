@@ -106,12 +106,7 @@
 | `Android Debug` | 调试版，包名 `.debug` 后缀，可与正式版共存 |
 | `Android API19 Release` | 面向更低系统版本的变体 |
 
-设备兼容性：
 
-- **架构**：当前仅提供 `armeabi-v7a`（32 位）。不支持 arm64-v8a / x86_64
-- **系统**：Android 5.0（API 21）及以上
-
----
 
 ## 构建
 
